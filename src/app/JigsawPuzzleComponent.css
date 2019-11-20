@@ -1,0 +1,45 @@
+.flex-img-size{
+    min-width: 18vw;
+    min-height: 15vw;
+    max-width: 18vw;
+    max-height: 15vw;
+}
+
+.bordered-img{
+    border: solid 2px #212529;
+}
+
+.bordered-img:hover{
+    border: solid 2px #0482ff;
+    transition: all .5s ease-in-out;
+}
+
+.col{
+    padding-left: 0;
+}
+.dupa{}
+.middle-img-text{
+    transition: .5s ease;
+    opacity: 0;
+    position: absolute;
+    top: 50%;
+    left: 43%;
+    transform: translate(-50%, -50%);
+    -ms-transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.container:hover #img1 {
+    opacity: 0.3;
+}
+
+.container:hover .middle-img-text {
+    opacity: 1;
+}
+
+.text {
+    background-color: #4CAF50;
+    color: white;
+    font-size: 16px;
+    padding: 16px 32px;
+}
