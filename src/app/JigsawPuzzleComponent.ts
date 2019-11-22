@@ -24,6 +24,8 @@ export class JigsawPuzzleComponent {
     PUZZLE_DIFFICULTY: number = 4;
     pieceWidth: number = 0;
     pieceHeight: number = 0;
+    // @ts-ignore
+    img: HTMLImageElement;
 
     constructor(private imageName: string) {
         this.canvas = JigsawPuzzleComponent.setDefaultCanvas();
@@ -46,6 +48,7 @@ export class JigsawPuzzleComponent {
             const newImgElem: HTMLImageElement = document.createElement('img');
             newImgElem.setAttribute("src", url);
             newImgElem.setAttribute("alt", this.imageName);
+            this.img = newImgElem;
             this.setPuzzleProperties(newImgElem);
             this.setCanvasProperties();
             this.initPuzzle(newImgElem);
@@ -79,6 +82,30 @@ export class JigsawPuzzleComponent {
                 yPos += this.pieceHeight;
             }
         }
+        document.onmousedown = ()=>{this.shufflePuzzle();}
+
+    }
+
+    private shufflePuzzle(){
+        this.pieces = this.shuffle(this.pieces);
+        context.clearRect(0,0,this.getPuzzleWidth(),this.getPuzzleHeight());
+        let piece;
+        let xPos :number = 0;
+        let yPos : number = 0;
+        for(let i = 0;i < this.pieces.length;i++){
+            piece = this.pieces[i];
+            piece.setX(xPos);
+            piece.setY(yPos);
+            context.drawImage(this.img, piece.getX(), piece.getY(), this.pieceWidth, this.pieceHeight,
+                xPos, yPos, this.pieceWidth, this.pieceHeight);
+            context.strokeRect(xPos, yPos, this.pieceWidth,this.pieceHeight);
+            xPos += this.pieceWidth;
+            if(xPos >= this.pieceWidth){
+                xPos = 0;
+                yPos += this.pieceHeight;
+            }
+        }
+        // document.onmousedown = onPuzzleClick;
     }
     private static setDefaultCanvas(): HTMLCanvasElement {
         return <HTMLCanvasElement>document.getElementById("can");
@@ -95,6 +122,13 @@ export class JigsawPuzzleComponent {
         this.canvas.classList.add('rounded', 'img-fluid', 'bordered-img');
     }
 
+    private shuffle(pieces: Piece[]) {
+        for (let i = pieces.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [pieces[i], pieces[j]] = [pieces[j], pieces[i]];
+        }
+        return pieces;
+    }
     private getPuzzleHeight(): number {
         return this.pieceHeight * this.PUZZLE_DIFFICULTY;
     }
