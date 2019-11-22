@@ -1,11 +1,5 @@
-window.onload = function () {
-    loadAll();
-};
-
-window.onbeforeunload = () => {
-    console.log('i \'m there');
-    loadAll();
-};
+window.onload =  ()=> {loadAll();};
+window.onbeforeunload = () => {loadAll();};
 
 function loadAll() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -23,6 +17,13 @@ export class JigsawPuzzleComponent {
 
     private context: CanvasRenderingContext2D;
     private canvas: HTMLCanvasElement;
+    pieces: Piece[] = [];
+    mouse: Piece = new Piece(0,0);
+    currentPiece = null; /*na wypadek replay*/
+    currentDropPiece = null; /*na wypadek replay*/
+    PUZZLE_DIFFICULTY: number = 4;
+    pieceWidth: number = 0;
+    pieceHeight: number = 0;
 
     constructor(private imageName: string) {
         this.canvas = JigsawPuzzleComponent.setDefaultCanvas();
@@ -42,29 +43,89 @@ export class JigsawPuzzleComponent {
         return new Promise<any>((resolve, reject) => {
 
             const url = srcConst.srcImg.concat(this.imageName);
-            const newElement: HTMLImageElement = document.createElement('img');
-            newElement.setAttribute("src", url);
-            newElement.setAttribute("alt", this.imageName);
-            console.log(newElement.width);
-            // parent.appendChild(newElement);
-            this.canvas.width = newElement.width;
-            this.canvas.height = newElement.height;
-            this.canvas.classList.add('rounded', 'img-fluid', 'bordered-img');
-            this.context.drawImage(newElement, 0, 0, newElement.width, newElement.height, 0, 0, newElement.width, newElement.height);
-            newElement.onload = () => {
+            const newImgElem: HTMLImageElement = document.createElement('img');
+            newImgElem.setAttribute("src", url);
+            newImgElem.setAttribute("alt", this.imageName);
+            this.setPuzzleProperties(newImgElem);
+            this.setCanvasProperties();
+            this.initPuzzle(newImgElem);
+            newImgElem.onload = () => {
                 resolve(url);
             };
-            newElement.onerror = () => {
+            newImgElem.onerror = () => {
                 reject(url);
             };
         });
     }
 
+    private initPuzzle(newImgElem: HTMLImageElement) {
+        this.pieces = [];
+        this.mouse = new Piece(0, 0);
+        this.currentPiece = null;
+        this.currentDropPiece = null;
+        this.context.drawImage(newImgElem, 0, 0, this.getPuzzleWidth(), this.getPuzzleHeight(),
+            0, 0, this.getPuzzleWidth(), this.getPuzzleHeight());
+        this.buildPieces();
+    }
+
+    private buildPieces(){
+        let xPos: number = 0;
+        let yPos: number = 0;
+        for (let i = 0; i < this.PUZZLE_DIFFICULTY * this.PUZZLE_DIFFICULTY; i++) {
+            this.pieces.push(new Piece(xPos, yPos));
+            xPos += this.pieceWidth;
+            if (xPos >= this.pieceWidth) {
+                xPos = 0;
+                yPos += this.pieceHeight;
+            }
+        }
+    }
     private static setDefaultCanvas(): HTMLCanvasElement {
         return <HTMLCanvasElement>document.getElementById("can");
     }
+
+    private setPuzzleProperties(img: HTMLImageElement): void {
+        this.pieceHeight = Math.floor(img.height / this.PUZZLE_DIFFICULTY);
+        this.pieceWidth = Math.floor(img.width / this.PUZZLE_DIFFICULTY);
+    }
+
+    private setCanvasProperties(): void {
+        this.canvas.width = this.getPuzzleWidth();
+        this.canvas.height = this.getPuzzleHeight();
+        this.canvas.classList.add('rounded', 'img-fluid', 'bordered-img');
+    }
+
+    private getPuzzleHeight(): number {
+        return this.pieceHeight * this.PUZZLE_DIFFICULTY;
+    }
+
+    private getPuzzleWidth(): number {
+        return this.pieceWidth * this.PUZZLE_DIFFICULTY;
+    }
 }
 
+
+export class Piece {
+    constructor(private x: number, private y: number) {
+    }
+
+    public getX(): number {
+        return this.x;
+    }
+
+    public getY(): number {
+        return this.y;
+    }
+
+    public setX(x: number): void {
+        this.x = x;
+    }
+
+    public setY(y: number): void {
+        this.y = y;
+    }
+
+}
 // window.onload = function () {
 //     const stack:HTMLElement[] = [];
 //     const root : HTMLElement = <HTMLElement> document.getElementById('tes');

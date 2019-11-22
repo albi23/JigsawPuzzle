@@ -11,12 +11,30 @@
 
 </head>
 <body style="background-color: lightgrey">
+<script>
+    function myFunction() {
+        var x = document.getElementById("myTopnav");
+        if (x.className === "topnav") {
+            x.className += " responsive";
+        } else {
+            x.className = "topnav";
+        }
+    }
+</script>
 
-<div class="jumbotron text-center">
-    <h1>Jigsaw Puzzle</h1>
+<!--<div class="jumbotron text-center">-->
+<!--    <h1>Jigsaw Puzzle</h1>-->
+<!--</div>-->
+<div class="topnav" id="myTopnav">
+    <p  class="a-nav active">Jgsaw Puzzle</p>
+    <a href="#news">News</a>
+    <a href="#contact">Contact</a>
+    <a href="#about">About</a>
+    <a href="javascript:void(0);" class="icon" onclick="myFunction()">
+        <i class="fa fa-bars"></i>
+    </a>
 </div>
-
-<div class="container">
+<div class="container mt-5 mb-sm-3">
     <div class="row ">
         <div class="col align-content-center">
             <canvas id="can"></canvas>
