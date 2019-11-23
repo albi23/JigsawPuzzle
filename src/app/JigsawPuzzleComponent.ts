@@ -1,6 +1,6 @@
-// @ts-ignore
-// import {Utils} from "../../dist/app/Utils.js";
-//  ../../node_modules/tslib/tslib.es6.js
+/*
+../../node_modules/tslib/tslib.es6.js
+*/
 
 window.onload = window.onbeforeunload = () => {
     loadAll();
@@ -32,6 +32,8 @@ export class JigsawPuzzleComponent {
     pieceWidth: number = 0;
     pieceHeight: number = 0;
     img: HTMLImageElement = new Image();
+    yScale: number = 0;
+    xScale: number = 0;
 
     constructor(private imageName: string) {
         this.canvas = JigsawPuzzleComponent.setDefaultCanvas();
@@ -43,14 +45,6 @@ export class JigsawPuzzleComponent {
         this.loadImg().then(() => {
             (<HTMLAnchorElement>document.getElementById('start'))
                 .addEventListener("click", () => (this.startGame()));
-            /*            document.onmousedown = (e: MouseEvent) => {
-                            this.onPuzzleClick(e);
-                        };*/
-            /*            document.onmousemove = (e: MouseEvent) => {
-                            this.updatePuzzle(e)
-                        };
-
-                        document.onmouseup = () =>{this.pieceDropped();}*/
         }).catch(() => {
             console.log('not done');
         })
@@ -61,12 +55,15 @@ export class JigsawPuzzleComponent {
 
             const url = srcConst.srcImg.concat(this.imageName);
             const newImgElem: HTMLImageElement = document.createElement('img');
+            const suitableCanvas = <HTMLDivElement>document.getElementById('can');
             newImgElem.setAttribute("src", url);
             newImgElem.setAttribute("alt", this.imageName);
+            this.yScale = suitableCanvas.clientHeight / newImgElem.height;
+            this.xScale = suitableCanvas.clientWidth / newImgElem.width;
             this.img = newImgElem;
             this.setPuzzleProperties(newImgElem);
             this.setCanvasProperties();
-            this.initPuzzle(newImgElem);
+            this.initPuzzle();
             newImgElem.onload = () => {
                 resolve(url);
             };
@@ -76,16 +73,19 @@ export class JigsawPuzzleComponent {
         });
     }
 
-    private initPuzzle(newImgElem: HTMLImageElement) {
+    private initPuzzle() {
         this.pieces = [];
         this.mouse = new Point2D(0, 0);
         this.currentPiece = null;
         this.currentDropPiece = null;
-        this.context.drawImage(newImgElem, 0, 0, this.getPuzzleWidth(), this.getPuzzleHeight(),
+        this.drawScaledImage( 0, 0, this.getPuzzleWidth(), this.getPuzzleHeight(),
             0, 0, this.getPuzzleWidth(), this.getPuzzleHeight());
         this.buildPieces();
     }
 
+    private drawScaledImage(sx:number, sy: number, sw: number, sh: number, dx:number, dy: number, dw: number, dh: number): void {
+        this.context.drawImage(this.img, sx/this.xScale, sy/this.yScale, sw/this.xScale, sh/this.yScale, dx, dy, dw, dh);
+    }
     private buildPieces() {
         let x: number = 0;
         let y: number = 0;
@@ -108,7 +108,7 @@ export class JigsawPuzzleComponent {
             piece = this.pieces[i];
             piece.setXPos(xPos);
             piece.setYPos(yPos);
-            this.context.drawImage(this.img, piece.getX(), piece.getY(), this.pieceWidth, this.pieceHeight,
+            this.drawScaledImage(piece.getX(), piece.getY(), this.pieceWidth, this.pieceHeight,
                 xPos, yPos, this.pieceWidth, this.pieceHeight);
             this.context.strokeRect(xPos, yPos, this.pieceWidth, this.pieceHeight);
             xPos += this.pieceWidth;
@@ -127,8 +127,8 @@ export class JigsawPuzzleComponent {
     }
 
     private setPuzzleProperties(img: HTMLImageElement): void {
-        this.pieceHeight = Math.floor(img.height / this.PUZZLE_DIFFICULTY);
-        this.pieceWidth = Math.floor(img.width / this.PUZZLE_DIFFICULTY);
+        this.pieceHeight = Math.floor(this.yScale * img.height / this.PUZZLE_DIFFICULTY);
+        this.pieceWidth = Math.floor(this.xScale * img.width / this.PUZZLE_DIFFICULTY);
     }
 
     private setCanvasProperties(): void {
@@ -175,10 +175,8 @@ export class JigsawPuzzleComponent {
                 this.pieceWidth, this.pieceHeight);
             this.context.save();
             this.context.globalAlpha = .9;
-            this.context.drawImage(this.img, this.currentPiece.getX(), this.currentPiece.getY(),
-                this.pieceWidth, this.pieceHeight, this.mouse.getX() - (this.pieceWidth / 2),
-                this.mouse.getY() - (this.pieceHeight / 2),
-                this.pieceWidth, this.pieceHeight);
+            this.drawScaledImage( this.currentPiece.getX(), this.currentPiece.getY(), this.pieceWidth, this.pieceHeight,
+                this.mouse.getX() - (this.pieceWidth / 2), this.mouse.getY() - (this.pieceHeight / 2), this.pieceWidth, this.pieceHeight)
             this.context.restore();
 
             document.onmousemove = (e: MouseEvent) => {
@@ -222,8 +220,7 @@ export class JigsawPuzzleComponent {
             if (piece == this.currentPiece) {
                 continue;
             }
-            this.context.drawImage(this.img, piece.getX(), piece.getY(),
-                this.pieceWidth, this.pieceHeight, piece.getXPos(), piece.getYPos(),
+            this.drawScaledImage(piece.getX(), piece.getY(), this.pieceWidth, this.pieceHeight, piece.getXPos(), piece.getYPos(),
                 this.pieceWidth, this.pieceHeight);
             this.context.strokeRect(piece.getXPos(), piece.getYPos(), this.pieceWidth,
                 this.pieceHeight);
@@ -245,9 +242,11 @@ export class JigsawPuzzleComponent {
             }
         }
         this.context.save();
-        this.context.globalAlpha = .6;
-        this.context.drawImage(this.img, (<Piece>this.currentPiece).getX(), (<Piece>this.currentPiece).getY(), this.pieceWidth,
-            this.pieceHeight, this.mouse.getX() - (this.pieceWidth / 2), this.mouse.getY() - (this.pieceHeight / 2), this.pieceWidth, this.pieceHeight);
+        this.context.globalAlpha = .6;;
+        if (this.currentPiece){
+            this.drawScaledImage(this.currentPiece.getX(), (this.currentPiece).getY(), this.pieceWidth, this.pieceHeight,
+                this.mouse.getX() - (this.pieceWidth / 2), this.mouse.getY() - (this.pieceHeight / 2), this.pieceWidth, this.pieceHeight)
+        }
         this.context.restore();
         this.context.strokeRect(this.mouse.getX() - (this.pieceWidth / 2), this.mouse.getY() - (this.pieceHeight / 2), this.pieceWidth, this.pieceHeight);
     }
@@ -272,8 +271,8 @@ export class JigsawPuzzleComponent {
         let piece: Piece;
         for (let i = 0; i < this.pieces.length; i++) {
             piece = this.pieces[i];
-            this.context.drawImage(this.img, piece.getX(), piece.getY(),
-                this.pieceWidth, this.pieceHeight, piece.getXPos(),
+            this.context.drawImage(this.img, piece.getX()/this.xScale, piece.getY()/this.yScale,
+                this.pieceWidth/this.xScale, this.pieceHeight/this.yScale, piece.getXPos(),
                 piece.getYPos(), this.pieceWidth, this.pieceHeight);
             this.context.strokeRect(piece.getXPos(), piece.getYPos(),
                 this.pieceWidth, this.pieceHeight);
@@ -346,80 +345,3 @@ export class Utils {
     }
 }
 
-// window.onload = function () {
-//     const stack:HTMLElement[] = [];
-//     const root : HTMLElement = <HTMLElement> document.getElementById('tes');
-//     stack.push(root);
-//     let created = createNewHTMLElement('div',["row"]);
-//     stack.push(created);
-//     /*let*/ created = createNewHTMLElement('div',["col"],"col-1");
-//     stack.push(created);
-//     /*let*/ created  = createNewHTMLElement('img',["rounded", "img-fluid", "flex-img-size", "bordered-img"],"img1","../assets/image1.jpeg");
-//     stack.push(created);
-//     // appendElementsToParent(created2,created3)
-//     // appendElementsToParent(created,created2)
-//     // appendElementsToParent(root,created)
-//     while (stack.length > 1){
-//         let child = <HTMLElement>stack.pop();
-//         let parent = <HTMLElement>stack.pop();
-//         stack.push(appendElementsToParent(parent,child))
-//     }
-// };
-//
-// function loadIMG(url: string, id: string): Promise<any> {
-//
-//     return new Promise<any>((resolve, reject) => {
-//
-//         const parent: HTMLDivElement = <HTMLDivElement>document.getElementById(id);
-//         let newElement: HTMLImageElement = document.createElement('img');
-//         newElement.setAttribute("src", url);
-//         newElement.setAttribute("alt", url);
-//         newElement.setAttribute("width", "30%");
-//         newElement.setAttribute("height", "30%");
-//         parent.appendChild(newElement);
-//         newElement.onload = function () {
-//             resolve(url);
-//         };
-//         newElement.onerror = function () {
-//             reject(url);
-//         };
-//     });
-// }
-//
-//
-// function appendElementsToParent(parent: HTMLElement, child: HTMLElement):HTMLElement {
-//     parent.appendChild(child);
-//     return parent;
-// }
-//
-// function createNewHTMLElement(newElementType: string, classNames?: string[], id?: string, url?:string): HTMLElement {
-//     let newElement: HTMLElement = <HTMLElement>document.createElement(newElementType);
-//     if (classNames) newElement = <HTMLElement>addClasses(newElement, classNames);
-//     if (id) newElement = <HTMLElement>addId(newElement, id);
-//     if (id) newElement = <HTMLElement>addSrc(newElement, url);
-//     return newElement;
-// }
-//
-// function addClasses(element: HTMLElement, classNames?: string[]): HTMLElement {
-//     if (!element) return element;
-//     if (classNames && classNames.length > 0) {
-//         for (const newClass of classNames) {
-//             element.classList.add(newClass)
-//         }
-//     }
-//     return element;
-// }
-//
-// function addId(element: HTMLElement,id: string): HTMLElement {
-//     if (!element) return element;
-//     element.setAttribute("id", id);
-//     return element;
-// }
-//
-// function addSrc(element: HTMLElement,url?: string): HTMLElement {
-//     if (!element) return element;
-//     if (typeof url === "string") {
-//         element.setAttribute("src", url);
-//     }
-//     return element;
-// }
