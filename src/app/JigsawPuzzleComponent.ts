@@ -1,3 +1,7 @@
+// @ts-ignore
+// import {Utils} from "../../dist/app/Utils.js";
+//  ../../node_modules/tslib/tslib.es6.js
+
 window.onload =  ()=> {loadAll();};
 window.onbeforeunload = () => {loadAll();};
 
@@ -17,15 +21,14 @@ export class JigsawPuzzleComponent {
 
     private context: CanvasRenderingContext2D;
     private canvas: HTMLCanvasElement;
-    pieces: Piece[] = [];
-    mouse: Piece = new Piece(0,0);
-    currentPiece = null; /*na wypadek replay*/
-    currentDropPiece = null; /*na wypadek replay*/
+    private pieces: Piece[] = [];
+    mouse: Point2D = new Point2D(0,0);
+    currentPiece = null;
+    currentDropPiece = null;
     PUZZLE_DIFFICULTY: number = 4;
     pieceWidth: number = 0;
     pieceHeight: number = 0;
-    // @ts-ignore
-    img: HTMLImageElement;
+    img: HTMLImageElement = new Image();
 
     constructor(private imageName: string) {
         this.canvas = JigsawPuzzleComponent.setDefaultCanvas();
@@ -35,7 +38,8 @@ export class JigsawPuzzleComponent {
 
     private getLoadedImg() {
         this.loadImg().then(() => {
-            console.log('done');
+            (<HTMLAnchorElement>document.getElementById('start'))
+                .addEventListener("click", () => (this.startGame()));
         }).catch(() => {
             console.log('not done');
         })
@@ -63,7 +67,7 @@ export class JigsawPuzzleComponent {
 
     private initPuzzle(newImgElem: HTMLImageElement) {
         this.pieces = [];
-        this.mouse = new Piece(0, 0);
+        this.mouse = new Point2D(0, 0);
         this.currentPiece = null;
         this.currentDropPiece = null;
         this.context.drawImage(newImgElem, 0, 0, this.getPuzzleWidth(), this.getPuzzleHeight(),
@@ -72,35 +76,35 @@ export class JigsawPuzzleComponent {
     }
 
     private buildPieces(){
-        let xPos: number = 0;
-        let yPos: number = 0;
+        let x: number = 0;
+        let y: number = 0;
         for (let i = 0; i < this.PUZZLE_DIFFICULTY * this.PUZZLE_DIFFICULTY; i++) {
-            this.pieces.push(new Piece(xPos, yPos));
-            xPos += this.pieceWidth;
-            if (xPos >= this.pieceWidth) {
-                xPos = 0;
-                yPos += this.pieceHeight;
+            this.pieces.push(new Piece(x, y,0,0));
+            x += this.pieceWidth;
+            if (x >= this.getPuzzleWidth()) {
+                x = 0;
+                y += this.pieceHeight;
             }
         }
-        document.onmousedown = ()=>{this.shufflePuzzle();}
+        // document.onmousedown = ()=>{;}
+        // this.shufflePuzzle();
 
     }
 
     private shufflePuzzle(){
-        this.pieces = this.shuffle(this.pieces);
-        context.clearRect(0,0,this.getPuzzleWidth(),this.getPuzzleHeight());
+        this.context.clearRect(0,0,this.getPuzzleWidth(),this.getPuzzleHeight());
         let piece;
         let xPos :number = 0;
         let yPos : number = 0;
         for(let i = 0;i < this.pieces.length;i++){
             piece = this.pieces[i];
-            piece.setX(xPos);
-            piece.setY(yPos);
-            context.drawImage(this.img, piece.getX(), piece.getY(), this.pieceWidth, this.pieceHeight,
+            piece.setXPos(xPos);
+            piece.setYPos(yPos);
+            this.context.drawImage(this.img, piece.getX(), piece.getY(), this.pieceWidth, this.pieceHeight,
                 xPos, yPos, this.pieceWidth, this.pieceHeight);
-            context.strokeRect(xPos, yPos, this.pieceWidth,this.pieceHeight);
+            this.context.strokeRect(xPos, yPos, this.pieceWidth,this.pieceHeight);
             xPos += this.pieceWidth;
-            if(xPos >= this.pieceWidth){
+            if(xPos >= this.getPuzzleWidth()){
                 xPos = 0;
                 yPos += this.pieceHeight;
             }
@@ -122,10 +126,17 @@ export class JigsawPuzzleComponent {
         this.canvas.classList.add('rounded', 'img-fluid', 'bordered-img');
     }
 
-    private shuffle(pieces: Piece[]) {
-        for (let i = pieces.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [pieces[i], pieces[j]] = [pieces[j], pieces[i]];
+    private startGame(){
+        this.pieces = [...this.shuffle(this.pieces)];
+        this.shufflePuzzle();
+
+    }
+    private shuffle(pieces : Piece[]) {
+
+        const utils = new Utils();
+        for (let i = this.pieces.length - 1; i > 0; i--) {
+            let nr = utils.randomIntFromInterval(0,this.pieces.length-1);
+            utils.swap(nr,i, pieces);
         }
         return pieces;
     }
@@ -138,8 +149,7 @@ export class JigsawPuzzleComponent {
     }
 }
 
-
-export class Piece {
+export class Point2D {
     constructor(private x: number, private y: number) {
     }
 
@@ -158,8 +168,45 @@ export class Piece {
     public setY(y: number): void {
         this.y = y;
     }
+}
+
+export class Piece extends Point2D {
+    constructor(x: number, y: number, private xPos: number, private yPos: number) {
+        super(x, y)
+    }
+
+    public getXPos(): number {
+        return this.xPos;
+    }
+
+    public getYPos(): number {
+        return this.yPos;
+    }
+
+    public setXPos(xPos: number): void {
+        this.xPos = xPos;
+    }
+
+    public setYPos(yPos: number): void {
+        this.yPos = yPos;
+    }
 
 }
+
+export class Utils {
+
+    public  swap<T>(from : number, to: number, array: T[]):T[]{
+        let temp: T = array[from];
+        array[from] = array[to];
+        array[to] = temp;
+        return array;
+    }
+
+    public  randomIntFromInterval(min: number, max: number) { // min and max included
+        return Math.floor(Math.random() * (max - min + 1) + min);
+    }
+}
+
 // window.onload = function () {
 //     const stack:HTMLElement[] = [];
 //     const root : HTMLElement = <HTMLElement> document.getElementById('tes');
