@@ -2,8 +2,10 @@
 // import {Utils} from "../../dist/app/Utils.js";
 //  ../../node_modules/tslib/tslib.es6.js
 
-window.onload =  ()=> {loadAll();};
-window.onbeforeunload = () => {loadAll();};
+window.onload = window.onbeforeunload= () => {
+    loadAll();
+};
+
 
 function loadAll() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -14,7 +16,8 @@ function loadAll() {
 }
 
 enum srcConst {
-    srcImg = "../assets/"
+    srcImg = "../assets/",
+    PUZZLE_HOVER_TINT = "#009900"
 }
 
 export class JigsawPuzzleComponent {
@@ -22,9 +25,9 @@ export class JigsawPuzzleComponent {
     private context: CanvasRenderingContext2D;
     private canvas: HTMLCanvasElement;
     private pieces: Piece[] = [];
-    mouse: Point2D = new Point2D(0,0);
-    currentPiece = null;
-    currentDropPiece = null;
+    mouse: Point2D = new Point2D(0, 0);
+    currentPiece: Piece | null = new Piece(0, 0, 0, 0);
+    currentDropPiece: Piece | null = null;
     PUZZLE_DIFFICULTY: number = 4;
     pieceWidth: number = 0;
     pieceHeight: number = 0;
@@ -40,6 +43,14 @@ export class JigsawPuzzleComponent {
         this.loadImg().then(() => {
             (<HTMLAnchorElement>document.getElementById('start'))
                 .addEventListener("click", () => (this.startGame()));
+/*            document.onmousedown = (e: MouseEvent) => {
+                this.onPuzzleClick(e);
+            };*/
+/*            document.onmousemove = (e: MouseEvent) => {
+                this.updatePuzzle(e)
+            };
+
+            document.onmouseup = () =>{this.pieceDropped();}*/
         }).catch(() => {
             console.log('not done');
         })
@@ -75,42 +86,42 @@ export class JigsawPuzzleComponent {
         this.buildPieces();
     }
 
-    private buildPieces(){
+    private buildPieces() {
         let x: number = 0;
         let y: number = 0;
         for (let i = 0; i < this.PUZZLE_DIFFICULTY * this.PUZZLE_DIFFICULTY; i++) {
-            this.pieces.push(new Piece(x, y,0,0));
+            this.pieces.push(new Piece(x, y, 0, 0));
             x += this.pieceWidth;
             if (x >= this.getPuzzleWidth()) {
                 x = 0;
                 y += this.pieceHeight;
             }
         }
-        // document.onmousedown = ()=>{;}
-        // this.shufflePuzzle();
-
     }
 
-    private shufflePuzzle(){
-        this.context.clearRect(0,0,this.getPuzzleWidth(),this.getPuzzleHeight());
+    private shufflePuzzle() {
+        this.context.clearRect(0, 0, this.getPuzzleWidth(), this.getPuzzleHeight());
         let piece;
-        let xPos :number = 0;
-        let yPos : number = 0;
-        for(let i = 0;i < this.pieces.length;i++){
+        let xPos: number = 0;
+        let yPos: number = 0;
+        for (let i = 0; i < this.pieces.length; i++) {
             piece = this.pieces[i];
             piece.setXPos(xPos);
             piece.setYPos(yPos);
             this.context.drawImage(this.img, piece.getX(), piece.getY(), this.pieceWidth, this.pieceHeight,
                 xPos, yPos, this.pieceWidth, this.pieceHeight);
-            this.context.strokeRect(xPos, yPos, this.pieceWidth,this.pieceHeight);
+            this.context.strokeRect(xPos, yPos, this.pieceWidth, this.pieceHeight);
             xPos += this.pieceWidth;
-            if(xPos >= this.getPuzzleWidth()){
+            if (xPos >= this.getPuzzleWidth()) {
                 xPos = 0;
                 yPos += this.pieceHeight;
             }
         }
-        // document.onmousedown = onPuzzleClick;
+        document.onmousedown = (e: MouseEvent) => {
+            this.onPuzzleClick(e);
+        };
     }
+
     private static setDefaultCanvas(): HTMLCanvasElement {
         return <HTMLCanvasElement>document.getElementById("can");
     }
@@ -126,26 +137,150 @@ export class JigsawPuzzleComponent {
         this.canvas.classList.add('rounded', 'img-fluid', 'bordered-img');
     }
 
-    private startGame(){
+    private startGame() {
         this.pieces = [...this.shuffle(this.pieces)];
         this.shufflePuzzle();
 
     }
-    private shuffle(pieces : Piece[]) {
 
-        const utils = new Utils();
+    private shuffle(pieces: Piece[]) {
+
         for (let i = this.pieces.length - 1; i > 0; i--) {
-            let nr = utils.randomIntFromInterval(0,this.pieces.length-1);
-            utils.swap(nr,i, pieces);
+            let nr = Utils.randomIntFromInterval(0, pieces.length - 1);
+            Utils.swap(nr, i, pieces);
         }
         return pieces;
     }
+
     private getPuzzleHeight(): number {
         return this.pieceHeight * this.PUZZLE_DIFFICULTY;
     }
 
     private getPuzzleWidth(): number {
         return this.pieceWidth * this.PUZZLE_DIFFICULTY;
+    }
+
+    private onPuzzleClick(mouseEvent: MouseEvent) {
+        console.log('x: ',mouseEvent.clientX,'  y: ',mouseEvent.clientY);
+        if (mouseEvent.clientX || mouseEvent.clientX == 0) {
+            this.mouse.setX(mouseEvent.clientX - this.canvas.offsetLeft);
+            this.mouse.setY(mouseEvent.clientY - this.canvas.offsetTop);
+        } else if (mouseEvent.offsetX || mouseEvent.offsetX == 0) {
+            this.mouse.setX(mouseEvent.offsetX - this.canvas.offsetLeft);
+            this.mouse.setY(mouseEvent.offsetY - this.canvas.offsetTop);
+        }
+        this.currentPiece = this.checkPieceClicked();
+        if (this.currentPiece != null) {
+            this.context.clearRect(this.currentPiece.getXPos(), this.currentPiece.getYPos(),
+                this.pieceWidth, this.pieceHeight);
+            this.context.save();
+            this.context.globalAlpha = .9;
+            this.context.drawImage(this.img, this.currentPiece.getX(), this.currentPiece.getY(),
+                this.pieceWidth, this.pieceHeight, this.mouse.getX() - (this.pieceWidth / 2),
+                this.mouse.getY() - (this.pieceHeight / 2),
+                this.pieceWidth, this.pieceHeight);
+            this.context.restore();
+
+            document.onmousemove = (e: MouseEvent) => {this.updatePuzzle(e)};
+            document.onmouseup = () =>{this.pieceDropped();}
+        }
+    }
+
+    private checkPieceClicked() {
+        let piece: Piece;
+        for (let i = 0; i < this.pieces.length; i++) {
+            piece = this.pieces[i];
+            if (this.mouse.getX() < piece.getXPos() ||
+                this.mouse.getX() > (piece.getYPos() + this.pieceWidth) ||
+                this.mouse.getY() < piece.getYPos() ||
+                this.mouse.getY() > (piece.getYPos() + this.pieceHeight)) {
+//PIECE NOT HIT
+            } else {
+                return piece;
+            }
+        }
+        return null;
+    }
+
+    private updatePuzzle(e: MouseEvent) {
+        this.currentDropPiece = null;
+        if (e.clientX || e.clientX == 0) {
+            this.mouse.setX(e.clientX - this.canvas.offsetLeft);
+            this.mouse.setY(e.clientY - this.canvas.offsetTop);
+        } else if (e.offsetX || e.offsetX == 0) {
+            this.mouse.setX(e.offsetX - this.canvas.offsetLeft);
+            this.mouse.setY(e.offsetY - this.canvas.offsetTop);
+        }
+        this.context.clearRect(0, 0, this.getPuzzleWidth(), this.getPuzzleHeight());
+        let piece: Piece;
+        for (let i = 0; i < this.pieces.length; i++) {
+            piece = this.pieces[i];
+            if (piece == this.currentPiece) {
+                continue;
+            }
+            this.context.drawImage(this.img, piece.getX(), piece.getY(),
+                this.pieceWidth, this.pieceHeight, piece.getXPos(), piece.getYPos(),
+                this.pieceWidth, this.pieceHeight);
+            this.context.strokeRect(piece.getXPos(), piece.getYPos(), this.pieceWidth,
+                this.pieceHeight);
+            if (this.currentDropPiece == null) {
+                if (this.mouse.getX() < piece.getXPos() || this.mouse.getX() >
+                    (piece.getXPos() + this.pieceWidth) || this.mouse.getY() < piece.getYPos()
+                    || this.mouse.getY() > (piece.getYPos() + this.pieceHeight)) {
+//NOT OVER
+                } else {
+                    this.currentDropPiece = piece;
+                    this.context.save();
+                    this.context.globalAlpha = .4;
+                    this.context.fillStyle = srcConst.PUZZLE_HOVER_TINT;
+                    this.context.fillRect(this.currentDropPiece.getXPos(),
+                        this.currentDropPiece.getYPos(), this.pieceWidth,
+                        this.pieceHeight);
+                    this.context.restore();
+                }
+            }
+        }
+        this.context.save();
+        this.context.globalAlpha = .6;
+        this.context.drawImage(this.img, (<Piece>this.currentPiece).getX(), (<Piece>this.currentPiece).getY(), this.pieceWidth,
+            this.pieceHeight, this.mouse.getX() - (this.pieceWidth / 2), this.mouse.getY() - (this.pieceHeight / 2), this.pieceWidth, this.pieceHeight);
+        this.context.restore();
+        this.context.strokeRect(this.mouse.getX() - (this.pieceWidth / 2), this.mouse.getY() - (this.pieceHeight / 2), this.pieceWidth, this.pieceHeight);
+    }
+
+    private pieceDropped() {
+        document.onmousemove = null;
+        document.onmouseup = null;
+        if (this.currentDropPiece != null) {
+            let temp: Point2D = new Point2D((<Piece>this.currentPiece).getXPos(), (<Piece>this.currentPiece).getYPos());
+            (<Piece>this.currentPiece).setXPos(this.currentDropPiece.getXPos());
+            (<Piece>this.currentPiece).setYPos(this.currentDropPiece.getYPos());
+            (<Piece>this.currentDropPiece).setXPos(temp.getX());
+            (<Piece>this.currentDropPiece).setYPos(temp.getY());
+        }
+        this.resetPuzzleAndCheckWin();
+    }
+
+    private resetPuzzleAndCheckWin() {
+        this.context.clearRect(0, 0, this.getPuzzleWidth(), this.getPuzzleHeight());
+        let gameWin = true;
+
+        let piece: Piece;
+        for (let i = 0; i < this.pieces.length; i++) {
+            piece = this.pieces[i];
+            this.context.drawImage(this.img, piece.getX(), piece.getY(),
+                this.pieceWidth, this.pieceHeight, piece.getXPos(),
+                piece.getYPos(), this.pieceWidth, this.pieceHeight);
+            this.context.strokeRect(piece.getXPos(), piece.getYPos(),
+                this.pieceWidth, this.pieceHeight);
+            if (piece.getXPos() != piece.getX() || piece.getYPos() != piece.getY()) {
+                gameWin = false;
+            }
+        }
+        if (gameWin) {
+            console.log('Wygrałeś chujku');
+            // setTimeout(gameOver,500);
+        }
     }
 }
 
@@ -195,14 +330,14 @@ export class Piece extends Point2D {
 
 export class Utils {
 
-    public  swap<T>(from : number, to: number, array: T[]):T[]{
+    public static swap<T>(from: number, to: number, array: T[]): T[] {
         let temp: T = array[from];
         array[from] = array[to];
         array[to] = temp;
         return array;
     }
 
-    public  randomIntFromInterval(min: number, max: number) { // min and max included
+    public static randomIntFromInterval(min: number, max: number) { // min and max included
         return Math.floor(Math.random() * (max - min + 1) + min);
     }
 }
