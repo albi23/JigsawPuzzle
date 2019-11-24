@@ -28,7 +28,8 @@ export class JigsawPuzzleComponent {
     mouse: Point2D = new Point2D(0, 0);
     currentPiece: Piece | null = new Piece(0, 0, 0, 0);
     currentDropPiece: Piece | null = null;
-    PUZZLE_DIFFICULTY: number = 4;
+    PUZZLE_COL: number = 4;
+    PUZZLE_ROW: number = 4;
     pieceWidth: number = 0;
     pieceHeight: number = 0;
     img: HTMLImageElement = new Image();
@@ -43,8 +44,10 @@ export class JigsawPuzzleComponent {
 
     private getLoadedImg() {
         this.loadImg().then(() => {
-            (<HTMLAnchorElement>document.getElementById('start'))
-                .addEventListener("click", () => (this.startGame()));
+            const start = <HTMLAnchorElement>document.getElementById('start');
+            start.addEventListener("click", () => (this.startGame(start)));
+            (<HTMLInputElement>(document.getElementById('btn')))
+                .addEventListener('click',()=>{this.changeColAndRow();});
         }).catch(() => {
             console.log('not done');
         })
@@ -89,7 +92,7 @@ export class JigsawPuzzleComponent {
     private buildPieces() {
         let x: number = 0;
         let y: number = 0;
-        for (let i = 0; i < this.PUZZLE_DIFFICULTY * this.PUZZLE_DIFFICULTY; i++) {
+        for (let i = 0; i < this.PUZZLE_COL * this.PUZZLE_ROW; i++) {
             this.pieces.push(new Piece(x, y, 0, 0));
             x += this.pieceWidth;
             if (x >= this.getPuzzleWidth()) {
@@ -127,8 +130,8 @@ export class JigsawPuzzleComponent {
     }
 
     private setPuzzleProperties(img: HTMLImageElement): void {
-        this.pieceHeight = Math.floor(this.yScale * img.height / this.PUZZLE_DIFFICULTY);
-        this.pieceWidth = Math.floor(this.xScale * img.width / this.PUZZLE_DIFFICULTY);
+        this.pieceHeight = Math.floor(this.yScale * img.height / this.PUZZLE_ROW);
+        this.pieceWidth = Math.floor(this.xScale * img.width / this.PUZZLE_COL);
     }
 
     private setCanvasProperties(): void {
@@ -137,10 +140,25 @@ export class JigsawPuzzleComponent {
         this.canvas.classList.add('rounded', 'img-fluid', 'bordered-img');
     }
 
-    private startGame() {
+    private startGame(startButton? : HTMLAnchorElement) {
+        if (startButton) startButton.innerText = "Reset Game";
         this.pieces = [...this.shuffle(this.pieces)];
         this.shufflePuzzle();
 
+    }
+
+    private changeColAndRow(){
+        const colInput = <HTMLInputElement>(document.getElementById('col'));
+        const rowInput = <HTMLInputElement>(document.getElementById('row'));
+        let row:number = parseInt(colInput.value);
+        let col:number = parseInt(rowInput.value);
+        if(row < 1 || col < 1 ){
+            (<HTMLDivElement>(document.getElementById('alert'))).style.display ='block';
+            return;
+        }
+        this.PUZZLE_COL = col;
+        this.PUZZLE_ROW = row;
+        this.initPuzzle();
     }
 
     private shuffle(pieces: Piece[]) {
@@ -153,11 +171,11 @@ export class JigsawPuzzleComponent {
     }
 
     private getPuzzleHeight(): number {
-        return this.pieceHeight * this.PUZZLE_DIFFICULTY;
+        return this.pieceHeight * this.PUZZLE_ROW
     }
 
     private getPuzzleWidth(): number {
-        return this.pieceWidth * this.PUZZLE_DIFFICULTY;
+        return this.pieceWidth * this.PUZZLE_COL;
     }
 
     private onPuzzleClick(mouseEvent: MouseEvent) {
