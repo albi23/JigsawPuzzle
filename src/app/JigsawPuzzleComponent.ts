@@ -152,7 +152,7 @@ export class JigsawPuzzleComponent {
         const rowInput = <HTMLInputElement>(document.getElementById('row'));
         let row:number = parseInt(colInput.value);
         let col:number = parseInt(rowInput.value);
-        if(row < 1 || col < 1 ){
+        if(row <= 1 || col <= 1 ){
             (<HTMLDivElement>(document.getElementById('alert'))).style.display ='block';
             return;
         }
@@ -182,13 +182,8 @@ export class JigsawPuzzleComponent {
 
     private onPuzzleClick(mouseEvent: MouseEvent) {
         console.log('x: ', mouseEvent.clientX, '  y: ', mouseEvent.clientY);
-        if (mouseEvent.clientX || mouseEvent.clientX == 0) {
-            this.mouse.setX(mouseEvent.clientX - this.canvas.offsetLeft);
-            this.mouse.setY(mouseEvent.clientY - this.canvas.offsetTop);
-        } else if (mouseEvent.offsetX || mouseEvent.offsetX == 0) {
-            this.mouse.setX(mouseEvent.offsetX - this.canvas.offsetLeft);
-            this.mouse.setY(mouseEvent.offsetY - this.canvas.offsetTop);
-        }
+        const clientRects : ClientRect = this.canvas.getClientRects()[0];
+        this.setMousePostion(mouseEvent,clientRects);
         this.currentPiece = this.checkPieceClicked();
         if (this.currentPiece != null) {
             this.context.clearRect(this.currentPiece.getXPos(), this.currentPiece.getYPos(),
@@ -200,7 +195,7 @@ export class JigsawPuzzleComponent {
             this.context.restore();
 
             document.onmousemove = (e: MouseEvent) => {
-                this.updatePuzzle(e)
+                this.updatePuzzle(e,clientRects)
             };
             document.onmouseup = () => {
                 this.pieceDropped();
@@ -224,15 +219,9 @@ export class JigsawPuzzleComponent {
         return null;
     }
 
-    private updatePuzzle(e: MouseEvent) {
+    private updatePuzzle(e: MouseEvent, clientRects : ClientRect) {
         this.currentDropPiece = null;
-        if (e.clientX || e.clientX == 0) {
-            this.mouse.setX(e.clientX - this.canvas.offsetLeft);
-            this.mouse.setY(e.clientY - this.canvas.offsetTop);
-        } else if (e.offsetX || e.offsetX == 0) {
-            this.mouse.setX(e.offsetX - this.canvas.offsetLeft);
-            this.mouse.setY(e.offsetY - this.canvas.offsetTop);
-        }
+        this.setMousePostion(e,clientRects);
         this.context.clearRect(0, 0, this.getPuzzleWidth(), this.getPuzzleHeight());
         let piece: Piece;
         for (let i = 0; i < this.pieces.length; i++) {
@@ -270,6 +259,17 @@ export class JigsawPuzzleComponent {
         this.context.restore();
         this.context.strokeRect(this.mouse.getX() - (this.pieceWidth / 2), this.mouse.getY() - (this.pieceHeight / 2), this.pieceWidth, this.pieceHeight);
     }
+
+    private setMousePostion(e: MouseEvent, clientRects : ClientRect){
+        if (e.clientX || e.clientX == 0) {
+            this.mouse.setX(e.clientX - clientRects.left);
+            this.mouse.setY(e.clientY - clientRects.top);
+        } else if (e.offsetX || e.offsetX == 0) {
+            this.mouse.setX(e.offsetX - clientRects.top);
+            this.mouse.setY(e.offsetY - clientRects.left);
+        }
+    }
+
 
     private pieceDropped() {
         document.onmousemove = null;
