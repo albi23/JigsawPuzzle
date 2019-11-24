@@ -64,7 +64,7 @@ export class JigsawPuzzleComponent {
             this.yScale = suitableCanvas.clientHeight / newImgElem.height;
             this.xScale = suitableCanvas.clientWidth / newImgElem.width;
             this.img = newImgElem;
-            this.setPuzzleProperties(newImgElem);
+            this.setPuzzleProperties();
             this.setCanvasProperties();
             this.initPuzzle();
             newImgElem.onload = () => {
@@ -129,9 +129,9 @@ export class JigsawPuzzleComponent {
         return <HTMLCanvasElement>document.getElementById("can");
     }
 
-    private setPuzzleProperties(img: HTMLImageElement): void {
-        this.pieceHeight = Math.floor(this.yScale * img.height / this.PUZZLE_ROW);
-        this.pieceWidth = Math.floor(this.xScale * img.width / this.PUZZLE_COL);
+    private setPuzzleProperties(): void {
+        this.pieceHeight = Math.floor(this.yScale * this.img.height / this.PUZZLE_ROW);
+        this.pieceWidth = Math.floor(this.xScale * this.img.width / this.PUZZLE_COL);
     }
 
     private setCanvasProperties(): void {
@@ -158,7 +158,9 @@ export class JigsawPuzzleComponent {
         }
         this.PUZZLE_COL = col;
         this.PUZZLE_ROW = row;
+        this.setPuzzleProperties();
         this.initPuzzle();
+        this.startGame();
     }
 
     private shuffle(pieces: Piece[]) {
