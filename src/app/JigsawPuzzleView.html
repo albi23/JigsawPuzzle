@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" charset="UTF-8">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link href="../../node_modules/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="JigsawPuzzleComponent.css" rel="stylesheet">
+    <script type="module" src="../../dist/JigsawPuzzleComponent.js"></script>
+    <title>Jigsaw Puzzle</title>
+
+</head>
+<body style="background-color: lightgrey">
+<script>
+    function myFunction() {
+        var x = document.getElementById("myTopnav");
+        if (x.className === "topnav") {
+            x.className += " responsive";
+        } else {
+            x.className = "topnav";
+        }
+    }
+</script>
+
+<!--<div class="jumbotron text-center">-->
+<!--    <h1>Jigsaw Puzzle</h1>-->
+<!--</div>-->
+<div class="alert" id="alert"  style="z-index: 1111; margin-bottom: 0; float: right; position: absolute;">
+    <span class="closebtn"  onclick="this.parentElement.style.display='none';">&times;</span>
+    You have enter wrong data
+</div>
+<div class="topnav" id="myTopnav">
+    <a class="a-nav-main  mb-0 mark-logo">Jgsaw Puzzle</a>
+    <a href="#" id="start">Start Game</a>
+    <a href="JigsawPuzzleComponent.html">Change Image</a>
+    <div class="a-nav" style="padding: 0">
+        <form class="ml-xl-4 form-inline mt-2" style="padding-bottom: 1%" >
+            <input class="  form-control mr-sm-1 mt" id="col" type="number"  min="1"  placeholder="column">
+            <input class=" form-control mr-sm-1" id="row" type="number" min="1" placeholder="row" >
+            <input type="button" class="btn btn-success ml-1" id="btn" value="Applay New"/>
+        </form>
+    </div>
+    <a href="javascript:void(0);" style="color: red" class="icon" onclick="myFunction()">
+        <i class="fa fa-bars"></i>
+    </a>
+</div>
+
+
+<div class="container mt-5 mb-sm-3">
+    <div class="row ">
+        <div class="col align-content-center" id="test">
+            <canvas id="can"></canvas>
+        </div>
+    </div>
+</div>
+</body>
+</html>
