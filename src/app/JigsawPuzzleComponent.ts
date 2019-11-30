@@ -167,17 +167,23 @@ export class JigsawPuzzleComponent {
         const rowInput = <HTMLInputElement>(document.getElementById('row'));
         let row:number = parseInt(colInput.value);
         let col:number = parseInt(rowInput.value);
-        if(row <= 1 || col <= 1 ){
+        if(row <= 1 || col <= 1  || row > 10 || col > 10){
             (<HTMLDivElement>(document.getElementById('alert'))).style.display ='block';
+            this.clearInputsValue(colInput,rowInput);
             return;
         }
         this.PUZZLE_COL = col;
         this.PUZZLE_ROW = row;
+        this.clearInputsValue(colInput,rowInput);
         this.setPuzzleProperties();
         this.initPuzzle();
         this.startGame();
     }
 
+    private clearInputsValue(colInput: HTMLInputElement, rowInput: HTMLInputElement) {
+        colInput.value = "";
+        rowInput.value = "";
+    }
     private shuffle(pieces: Piece[]) {
 
         for (let i = this.pieces.length - 1; i > 0; i--) {
