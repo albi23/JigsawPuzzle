@@ -3,43 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" charset="UTF-8">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+<!--    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">-->
     <link href="../../node_modules/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="JigsawPuzzleComponent.css" rel="stylesheet">
-    <script type="module" src="../../dist/app/JigsawPuzzleComponent.js"></script>
+    <script type="module" src="../../dist/JigsawPuzzleComponent.js"></script>
     <title>Jigsaw Puzzle</title>
 
 </head>
 <body style="background-color: lightgrey">
-<!--<script>-->
-<!--    function myFunction() {-->
-<!--        var x = document.getElementById("myTopnav");-->
-<!--        if (x.className === "topnav") {-->
-<!--            x.className += " responsive";-->
-<!--        } else {-->
-<!--            x.className = "topnav";-->
-<!--        }-->
-<!--    }-->
-<!--</script>-->
+<script>
+    function myFunction() {
+        var x = document.getElementById("myTopnav");
+        if (x.className === "topnav") {
+            x.className += " responsive";
+        } else {
+            x.className = "topnav";
+        }
+    }
+</script>
 
 <!--<div class="jumbotron text-center">-->
 <!--    <h1>Jigsaw Puzzle</h1>-->
 <!--</div>-->
 <div class="alert" id="alert"  style="z-index: 1111; margin-bottom: 0; float: right; position: absolute;">
-    <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+    <span class="closebtn"  onclick="this.parentElement.style.display='none';">&times;</span>
     You have enter wrong data
 </div>
 <div class="topnav" id="myTopnav">
-    <p  class="a-nav active mb-0 mark-logo">Jgsaw Puzzle</p>
+    <p class="a-nav active mb-0 mark-logo">Jgsaw Puzzle</p>
     <a href="#" id="start">Start Game</a>
     <a href="JigsawPuzzleComponent.html">Change Image</a>
-    <form class="ml-xl-4 form-inline mt-4" style="margin-left: 3%">
-        <input class=" ml-3 form-control mr-sm-1" id="col" type="number"  min="1" style="width: 10%" placeholder="column">
-        <input class=" form-control mr-sm-1" id="row" type="number" min="1" placeholder="row" style="width: 10%">
-        <input type="button" class="btn btn-success ml-1" id="btn" value="Applay New"/>
-    </form>
-    <a href="javascript:void(0);" class="icon" onclick="myFunction()">
-        <i class="fa fa-bars"></i>
+    <div class="a-nav" style="padding: 0">
+        <form class="ml-xl-4 form-inline mt-2" style="padding-bottom: 1%" >
+            <input class="  form-control mr-sm-1 mt" id="col" type="number"  min="1"  placeholder="column">
+            <input class=" form-control mr-sm-1" id="row" type="number" min="1" placeholder="row" >
+            <input type="button" class="btn btn-success ml-1" id="btn" value="Applay New"/>
+        </form>
+    </div>
+    <a href="javascript:void(0);" style="color: red" class="icon" onclick="myFunction()">
+        <i class="fa fa-bars">&#xf0c9;</i>
     </a>
 </div>
 

@@ -1,6 +1,7 @@
-/*
-../../node_modules/tslib/tslib.es6.js
-*/
+
+import {Utils} from "./Utils.js";
+import {Point2D} from "./Point2D.js";
+import {Piece} from "./Piece.js";
 
 window.onload = window.onbeforeunload = () => {
     loadAll();
@@ -117,10 +118,6 @@ export class JigsawPuzzleComponent {
             piece.setYPos(yPos);
             this.drawScaledImage(piece.getX(), piece.getY(), this.pieceWidth, this.pieceHeight,
                 xPos, yPos, this.pieceWidth, this.pieceHeight);
-            if (piece.getX() === 0 && piece.getY() === 0 ){
-                this.drawMainPiece(piece);
-                this.mainPiece = piece;
-            }
             this.context.strokeRect(xPos, yPos, this.pieceWidth, this.pieceHeight);
             xPos += this.pieceWidth;
             if (xPos >= this.getPuzzleWidth()) {
@@ -128,6 +125,7 @@ export class JigsawPuzzleComponent {
                 yPos += this.pieceHeight;
             }
         }
+        this.findAndSetRedPiece();
         document.onmousedown = (e: MouseEvent) => {
             this.onPuzzleClick(e);
         };
@@ -148,6 +146,15 @@ export class JigsawPuzzleComponent {
         this.canvas.classList.add('rounded', 'img-fluid', 'bordered-img');
     }
 
+    private findAndSetRedPiece(){
+        for (const piece of this.pieces) {
+            if (piece.getXPos() === 0 && piece.getYPos() === 0 ){
+                this.drawMainPiece(piece);
+                this.mainPiece = piece;
+                break;
+            }
+        }
+    }
     private startGame(startButton? : HTMLAnchorElement) {
         if (startButton) startButton.innerText = "Reset Game";
         this.pieces = [...this.shuffle(this.pieces)];
@@ -333,64 +340,6 @@ export class JigsawPuzzleComponent {
         document.onmousemove = null;
         document.onmouseup = null;
         loadAll();
-    }
-}
-
-export class Point2D {
-    constructor(private x: number, private y: number) {
-    }
-
-    public getX(): number {
-        return this.x;
-    }
-
-    public getY(): number {
-        return this.y;
-    }
-
-    public setX(x: number): void {
-        this.x = x;
-    }
-
-    public setY(y: number): void {
-        this.y = y;
-    }
-}
-
-export class Piece extends Point2D {
-    constructor(x: number, y: number, private xPos: number, private yPos: number) {
-        super(x, y)
-    }
-
-    public getXPos(): number {
-        return this.xPos;
-    }
-
-    public getYPos(): number {
-        return this.yPos;
-    }
-
-    public setXPos(xPos: number): void {
-        this.xPos = xPos;
-    }
-
-    public setYPos(yPos: number): void {
-        this.yPos = yPos;
-    }
-
-}
-
-export class Utils {
-
-    public static swap<T>(from: number, to: number, array: T[]): T[] {
-        let temp: T = array[from];
-        array[from] = array[to];
-        array[to] = temp;
-        return array;
-    }
-
-    public static randomIntFromInterval(min: number, max: number) { // min and max included
-        return Math.floor(Math.random() * (max - min + 1) + min);
     }
 }
 
